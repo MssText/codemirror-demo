@@ -57,39 +57,14 @@ export default {
   },
   methods: {
     myCompletions(context) {
-      console.log(context, '== context ==')
-      // eslint-disable-next-line no-useless-escape
-      let word = context.matchBefore(/\w+[\u4e00-\u9fa5]+[\+\-\*/]+/)
-      if (word && word.from == word.to) return null
-
-      console.log(word, '== word ==')
-      console.log(word, '== word ==')
-      let from = word ? word.from : null
+      let before = context.matchBefore(/[a-zA-Z0-9_\u4e00-\u9fa5\+\-\*\/]+/)
+      if (!context.explicit && !before) return null
       return {
-        from,
+        from: before ? before.from : context.pos,
         options: this.completions,
-        // eslint-disable-next-line no-useless-escape
-        validFor: /\w+[\u4e00-\u9fa5]+[\+\-\*/]+/,
+        validFor: /^[a-zA-Z0-9_\u4e00-\u9fa5\+\-\*\/]*$/,
       };
     },
   },
 };
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
-</style>
