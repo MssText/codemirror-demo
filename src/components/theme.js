@@ -1,6 +1,4 @@
 import { EditorView } from "@codemirror/view"
-import { HighlightStyle, syntaxHighlighting } from "@codemirror/language"
-import { tags as t } from "@lezer/highlight"
 
 // Using https://github.com/one-dark/vscode-one-dark-theme/ as reference for the colors
 
@@ -111,76 +109,6 @@ export const oneDarkTheme = EditorView.theme({
   }
 }, { dark: true })
 
-/// The highlighting style for code in the One Dark theme.
-export const oneDarkHighlightStyle = HighlightStyle.define([
-  {
-    tag: t.keyword,
-    color: violet
-  },
-  {
-    tag: [t.name, t.deleted, t.character, t.propertyName, t.macroName],
-    color: coral
-  },
-  {
-    tag: [t.function(t.variableName), t.labelName],
-    color: malibu
-  },
-  {
-    tag: [t.color, t.constant(t.name), t.standard(t.name)],
-    color: whiskey
-  },
-  {
-    tag: [t.definition(t.name), t.separator],
-    color: ivory
-  },
-  {
-    tag: [t.typeName, t.className, t.number, t.changed, t.annotation, t.modifier, t.self, t.namespace],
-    color: chalky
-  },
-  {
-    tag: [t.operator, t.operatorKeyword, t.url, t.escape, t.regexp, t.link, t.special(t.string)],
-    color: cyan
-  },
-  {
-    tag: [t.meta, t.comment],
-    color: stone
-  },
-  {
-    tag: t.strong,
-    fontWeight: "bold"
-  },
-  {
-    tag: t.emphasis,
-    fontStyle: "italic"
-  },
-  {
-    tag: t.strikethrough,
-    textDecoration: "line-through"
-  },
-  {
-    tag: t.link,
-    color: stone,
-    textDecoration: "underline"
-  },
-  {
-    tag: t.heading,
-    fontWeight: "bold",
-    color: coral
-  },
-  {
-    tag: [t.atom, t.bool, t.special(t.variableName)],
-    color: whiskey
-  },
-  {
-    tag: [t.processingInstruction, t.string, t.inserted],
-    color: sage
-  },
-  {
-    tag: t.invalid,
-    color: invalid
-  },
-])
-
 /// Extension to enable the One Dark theme (both the editor theme and
 /// the highlight style).
-export const oneDark = [oneDarkTheme, syntaxHighlighting(oneDarkHighlightStyle)]
+export const oneDark = [oneDarkTheme]

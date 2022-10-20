@@ -11,9 +11,10 @@
 </template>
 
 <script>
-import { basicSetup, EditorView } from "codemirror";
+import { basicSetup } from "codemirror";
+import { EditorView, keymap, placeholder } from '@codemirror/view'
 import { autocompletion } from "@codemirror/autocomplete";
-import { EditorState } from "@codemirror/state";
+import { EditorState, Compartment, StateEffect } from "@codemirror/state";
 import { oneDark } from "./theme";
 
 export default {
@@ -25,8 +26,9 @@ export default {
     return {
       editorView: null,
       value: "",
+      placeholder: '公式格式：参数1 + 参数2 + sum(表格1: column1)',
       completions: [
-        { label: "panic" },
+        { label: "panic", apply: this.handleApply },
         { label: "park" },
         { label: "password" },
         { label: "1245" },
@@ -51,6 +53,7 @@ export default {
   },
   mounted() {
     this.createEditor();
+    this.setPlaceholder(this.placeholder)
   },
   methods: {
     // 创建编辑器
@@ -101,14 +104,34 @@ export default {
       return {
         from: before ? before.from : context.pos,
         options: this.completions,
+        // 删除的时候是否触发匹配
         // validFor: /^[a-zA-Z0-9_\u4e00-\u9fa5\+\-\*\/]*$/,
       };
     },
 
-    // 这个函数是否能用来校验错误信息
+    // 选中每一项时会触发
     handleApply(view, completion, from, to) {
-      console.log(completion.value, "== completion ==");
+      console.log(completion, "== completion ==");
     },
+
+    // 设置编辑器的placeholder
+    setPlaceholder(value) {
+      const { run: rePlaceholder } = this.createEditorCompartment(this.editorView)
+      rePlaceholder(placeholder(value))
+    },
+
+    // 创建对比内容管理器
+    // https://github.com/surmon-china/vue-codemirror/blob/main/src/codemirror.ts
+    createEditorCompartment(view) {
+       const compartment = new Compartment()
+        const run = (extension) => {
+        compartment.get(view.state)
+          ? view.dispatch({ effects: compartment.reconfigure(extension) }) // reconfigure
+          : view.dispatch({ effects: StateEffect.appendConfig.of(compartment.of(extension)) }) // inject
+      }
+      return { compartment, run }
+    },
+
 
     // 添加额外的样式
     addOptionClass(completion) {
@@ -117,7 +140,7 @@ export default {
 
     // 获取编辑器内容
     getEditorValue() {
-      console.log(this.view.contentDOM.textContent, "= 编辑器的内容 =");
+      console.log(this.editorView.contentDOM.textContent, "= 编辑器的内容 =");
     },
 
     // 更新的时候的钩子
@@ -143,7 +166,7 @@ export default {
 
   beforeDestroy() {
     // 销毁编辑器实例
-    this.view.destroy();
+    this.editorView.destroy();
   },
 };
 </script>
@@ -173,7 +196,7 @@ export default {
   background: #fff;
   height: 35px;
   line-height: 35px;
-  font-size: 16px;
+  font-size: 14px;
   color: #606266;
 }
 </style>
