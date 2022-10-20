@@ -5,15 +5,14 @@
       id="editor"
       style="text-align: left; margin-bottom: 40px"
     ></div>
-    <el-input v-model="value" />
     <el-button type="primary" @click="getEditorValue">获取编辑器内容</el-button>
   </div>
 </template>
 
 <script>
-import { basicSetup } from "codemirror";
-import { EditorView, keymap, placeholder } from '@codemirror/view'
+import { EditorView, keymap, placeholder } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
+import { search } from "@codemirror/search";
 import { EditorState, Compartment, StateEffect } from "@codemirror/state";
 import { oneDark } from "./theme";
 
@@ -25,11 +24,13 @@ export default {
   data() {
     return {
       editorView: null,
-      value: "",
-      placeholder: '公式格式：参数1 + 参数2 + sum(表格1: column1)',
+      placeholder: "公式格式：参数1 + 参数2 + sum(表格1: column1)",
+      list: [],
       completions: [
-        { label: "panic", apply: this.handleApply },
-        { label: "park" },
+        {
+          label: "panic",
+        },
+        { label: "park", apply: this.handleApply },
         { label: "password" },
         { label: "1245" },
         { label: "mss" },
@@ -53,7 +54,7 @@ export default {
   },
   mounted() {
     this.createEditor();
-    this.setPlaceholder(this.placeholder)
+    this.setPlaceholder(this.placeholder);
   },
   methods: {
     // 创建编辑器
@@ -61,18 +62,20 @@ export default {
       let state = EditorState.create({
         doc: "",
         extensions: [
-          basicSetup,
           // oneDark, // 这里可定制编辑器样式
+          search(),
           autocompletion({
-            override: [this.myCompletions],
             icons: false,
             optionClass: this.addOptionClass,
+
+            // TODO:
+            // addToOptions: this.createCompletionNode(),
+            override: [this.myCompletions],
           }),
           EditorState.transactionFilter.of((tr) => {
             return tr.newDoc.lines > 1 ? [] : [tr];
           }),
           EditorView.updateListener.of((viewUpdate) => {
-
             // doc updated
             this.handleOnUpdate(viewUpdate);
 
@@ -105,7 +108,7 @@ export default {
         from: before ? before.from : context.pos,
         options: this.completions,
         // 删除的时候是否触发匹配
-        // validFor: /^[a-zA-Z0-9_\u4e00-\u9fa5\+\-\*\/]*$/,
+        validFor: /^[a-zA-Z0-9_\u4e00-\u9fa5\+\-\*\/]*$/,
       };
     },
 
@@ -114,53 +117,70 @@ export default {
       console.log(completion, "== completion ==");
     },
 
+    // 动态增加选项
+    createCompletionNode() {
+        const li = document.createElement("li");
+        li.innerText = '这是我的测试';
+        li.style.paddingBottom = '30px'
+        return [
+          {
+          render: () => li,
+          position: 400
+        }
+        ]
+    },
+
     // 设置编辑器的placeholder
     setPlaceholder(value) {
-      const { run: rePlaceholder } = this.createEditorCompartment(this.editorView)
-      rePlaceholder(placeholder(value))
+      const { run: rePlaceholder } = this.createEditorCompartment(
+        this.editorView
+      );
+      rePlaceholder(placeholder(value));
     },
 
     // 创建对比内容管理器
     // https://github.com/surmon-china/vue-codemirror/blob/main/src/codemirror.ts
     createEditorCompartment(view) {
-       const compartment = new Compartment()
-        const run = (extension) => {
+      const compartment = new Compartment();
+      const run = (extension) => {
         compartment.get(view.state)
           ? view.dispatch({ effects: compartment.reconfigure(extension) }) // reconfigure
-          : view.dispatch({ effects: StateEffect.appendConfig.of(compartment.of(extension)) }) // inject
-      }
-      return { compartment, run }
+          : view.dispatch({
+              effects: StateEffect.appendConfig.of(compartment.of(extension)),
+            }); // inject
+      };
+      return { compartment, run };
     },
-
 
     // 添加额外的样式
     addOptionClass(completion) {
-      console.log(completion, "== addOptionClass ==");
+      // console.log(this.editorView.acceptCompletion, '== completion ==')
+      return "option";
     },
 
     // 获取编辑器内容
     getEditorValue() {
-      console.log(this.editorView.contentDOM.textContent, "= 编辑器的内容 =");
+      // console.log(this.editorView.contentDOM.textContent, "= 编辑器的内容 =");
     },
 
     // 更新的时候的钩子
     handleOnUpdate(viewUpdate) {
-      console.log(viewUpdate, '内容更新了viewUpdate==')
+      // console.log(viewUpdate, '内容更新了viewUpdate==')
     },
 
     // 编辑内容改变
     handleOnChange() {
-      console.log("编辑器内容改变");
+      // console.log("编辑器内容改变");
     },
 
     // 获取焦点
     handleOnFocus() {
-      console.log("编辑器获取焦点");
+      // console.log("编辑器获取焦点");
     },
 
     // 失去焦点
     handleOnBlur() {
-      console.log("编辑器失去焦点");
+      // console.log("编辑器失去焦点");
     },
   },
 
@@ -182,9 +202,6 @@ export default {
   border: 1px solid #dcdfe6;
   outline: 0;
 }
-.ͼ1 .cm-content {
-  color: red;
-}
 .ͼ2 .cm-gutters {
   display: none;
 }
@@ -198,5 +215,19 @@ export default {
   line-height: 35px;
   font-size: 14px;
   color: #606266;
+}
+.option {
+  font-size: 14px;
+  padding: 0 20px;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: black;
+  height: 34px;
+  line-height: 34px;
+  box-sizing: border-box;
+  cursor: pointer;
+  background: #fff;
 }
 </style>
