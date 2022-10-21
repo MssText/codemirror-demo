@@ -11,13 +11,11 @@
 </template>
 
 <script>
-import { EditorView, keymap, placeholder } from "@codemirror/view";
+import { EditorView, placeholder } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
 import { search } from "@codemirror/search";
 import { EditorState, Compartment, StateEffect } from "@codemirror/state";
-import { oneDark } from "./theme";
 import { updateListenerExtension } from './updateListenerExtension'
-import { cursorTooltip } from './tooltip'
 import selectDemo from './selectDemo.vue'
 
 
@@ -33,31 +31,21 @@ export default {
       placeholder: "公式格式：参数1 + 参数2 + sum(表格1: column1)",
       list: [],
       completions: [
-        {
-          label: "panic",
-          apply: (view, completion, from, to) => {
-            console.log(completion)
-          }
-        },
-        {
-          label: "park",
-          info: () => this.$refs.selectDemo.$el,
-          apply: this.handleApply
-        },
-        { label: "password" },
         { label: "1245" },
-        { label: "mss" },
         { label: "参数1" },
         { label: "参数2" },
-        { label: "sum(表格1: key1)" },
-        { label: "sum(表格2: key2)" },
-        { label: "sum(表格3: key3)" },
-        { label: "sum(表格4: key4)" },
-        { label: "sum(表格5: key5)" },
-        { label: "sum(表格6: key6)" },
-        { label: "sum(表格7: key7)" },
-        { label: "sum(表格8: key8)" },
-        { label: "sum(表格9: key9)" },
+        { label: "sum(表格1: column1)" },
+        { label: "sum(表格1: column2)" },
+        { label: "sum(表格1: column3)" },
+        { label: "sum(表格1: column4)" },
+        { label: "sum(表格2: column1)" },
+        { label: "sum(表格2: column2)" },
+        { label: "sum(表格2: column3)" },
+        { label: "sum(表格2: column4)" },
+        { label: "sum(表格3: column1)" },
+        { label: "sum(表格3: column2)" },
+        { label: "sum(表格3: column3)" },
+        { label: "sum(表格3: column4)" },
         { label: "+" },
         { label: "-" },
         { label: "*" },
@@ -80,13 +68,9 @@ export default {
           autocompletion({
             icons: false,
             optionClass: this.addOptionClass,
-            closeOnBlur: false,
-            // TODO:
-            addToOptions: this.createCompletionNode(),
             override: [this.myCompletions],
           }),
           updateListenerExtension,
-          cursorTooltip(),
           EditorState.transactionFilter.of((tr) => {
             return tr.newDoc.lines > 1 ? [] : [tr];
           }),
@@ -117,30 +101,20 @@ export default {
 
     // 自动补全参数
     myCompletions(context) {
-      let before = context.matchBefore(/[a-zA-Z0-9_\u4e00-\u9fa5\+\-\*\/]+/);
+      let before = context.matchBefore(/[a-zA-Z\(\:\)0-9_\u4e00-\u9fa5\+\-\*\/]+/);
       if (!before) return null;
       if (before && before.from == before.to && !context.explicit) return null;
       return {
-        from: before ? before.from : context.pos,
+        from: before ? before.from : null,
         options: this.completions,
         // 删除的时候是否触发匹配
-        validFor: /^[a-zA-Z0-9_\u4e00-\u9fa5\+\-\*\/]*$/,
+        // validFor: /^[a-zA-Z0-9_\u4e00-\u9fa5\+\-\*\/]*$/,
       };
     },
 
     // 选中每一项时会触发
     handleApply(view, completion, from, to) {
       console.log(completion, "== completion ==");
-    },
-
-    // 动态增加选项
-    createCompletionNode() {
-        return [
-          {
-            render: () => this.$refs.selectDemo.$el,
-            position: 20
-          },
-        ]
     },
 
     // 设置编辑器的placeholder
@@ -160,14 +134,13 @@ export default {
           ? view.dispatch({ effects: compartment.reconfigure(extension) }) // reconfigure
           : view.dispatch({
               effects: StateEffect.appendConfig.of(compartment.of(extension)),
-            }); // inject
+            });
       };
       return { compartment, run };
     },
 
     // 添加额外的样式
     addOptionClass(completion) {
-      console.log(completion, '== completion ==')
       return "option";
     },
 
