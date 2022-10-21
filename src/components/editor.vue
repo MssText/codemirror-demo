@@ -6,7 +6,6 @@
       style="text-align: left; margin-bottom: 40px"
     ></div>
     <el-button type="primary" @click="getEditorValue">获取编辑器内容</el-button>
-    <selectDemo ref="selectDemo" />
   </div>
 </template>
 
@@ -16,11 +15,9 @@ import { autocompletion } from "@codemirror/autocomplete";
 import { search } from "@codemirror/search";
 import { EditorState, Compartment, StateEffect } from "@codemirror/state";
 import { updateListenerExtension } from './updateListenerExtension'
-import selectDemo from './selectDemo.vue'
 
 
 export default {
-  components: { selectDemo },
   name: "HelloWorld",
   props: {
     msg: String,
@@ -101,14 +98,14 @@ export default {
 
     // 自动补全参数
     myCompletions(context) {
-      let before = context.matchBefore(/[a-zA-Z\(\:\)0-9_\u4e00-\u9fa5\+\-\*\/]+/);
+      let before = context.matchBefore(/[a-zA-Z\(\:\s*\)0-9_\u4e00-\u9fa5\+\-\*\/]+/);
       if (!before) return null;
       if (before && before.from == before.to && !context.explicit) return null;
       return {
         from: before ? before.from : null,
         options: this.completions,
         // 删除的时候是否触发匹配
-        // validFor: /^[a-zA-Z0-9_\u4e00-\u9fa5\+\-\*\/]*$/,
+        // validFor: /^/[a-zA-Z\(\:\s*\)0-9_\u4e00-\u9fa5\+\-\*\/]+/)*$/,
       };
     },
 
