@@ -6,6 +6,7 @@
       style="text-align: left; margin-bottom: 40px"
     ></div>
     <el-button type="primary" @click="getEditorValue">获取编辑器内容</el-button>
+    <selectDemo ref="selectDemo" />
   </div>
 </template>
 
@@ -15,8 +16,13 @@ import { autocompletion } from "@codemirror/autocomplete";
 import { search } from "@codemirror/search";
 import { EditorState, Compartment, StateEffect } from "@codemirror/state";
 import { oneDark } from "./theme";
+import { updateListenerExtension } from './updateListenerExtension'
+import { cursorTooltip } from './tooltip'
+import selectDemo from './selectDemo.vue'
+
 
 export default {
+  components: { selectDemo },
   name: "HelloWorld",
   props: {
     msg: String,
@@ -29,8 +35,15 @@ export default {
       completions: [
         {
           label: "panic",
+          apply: (view, completion, from, to) => {
+            console.log(completion)
+          }
         },
-        { label: "park", apply: this.handleApply },
+        {
+          label: "park",
+          info: () => this.$refs.selectDemo.$el,
+          apply: this.handleApply
+        },
         { label: "password" },
         { label: "1245" },
         { label: "mss" },
@@ -67,11 +80,13 @@ export default {
           autocompletion({
             icons: false,
             optionClass: this.addOptionClass,
-
+            closeOnBlur: false,
             // TODO:
-            // addToOptions: this.createCompletionNode(),
+            addToOptions: this.createCompletionNode(),
             override: [this.myCompletions],
           }),
+          updateListenerExtension,
+          cursorTooltip(),
           EditorState.transactionFilter.of((tr) => {
             return tr.newDoc.lines > 1 ? [] : [tr];
           }),
@@ -103,7 +118,8 @@ export default {
     // 自动补全参数
     myCompletions(context) {
       let before = context.matchBefore(/[a-zA-Z0-9_\u4e00-\u9fa5\+\-\*\/]+/);
-      if (!context.explicit && !before) return null;
+      if (!before) return null;
+      if (before && before.from == before.to && !context.explicit) return null;
       return {
         from: before ? before.from : context.pos,
         options: this.completions,
@@ -119,14 +135,11 @@ export default {
 
     // 动态增加选项
     createCompletionNode() {
-        const li = document.createElement("li");
-        li.innerText = '这是我的测试';
-        li.style.paddingBottom = '30px'
         return [
           {
-          render: () => li,
-          position: 400
-        }
+            render: () => this.$refs.selectDemo.$el,
+            position: 20
+          },
         ]
     },
 
@@ -154,7 +167,7 @@ export default {
 
     // 添加额外的样式
     addOptionClass(completion) {
-      // console.log(this.editorView.acceptCompletion, '== completion ==')
+      console.log(completion, '== completion ==')
       return "option";
     },
 
@@ -229,5 +242,8 @@ export default {
   box-sizing: border-box;
   cursor: pointer;
   background: #fff;
+}
+.myH1 {
+  color: rebeccapurple;
 }
 </style>
